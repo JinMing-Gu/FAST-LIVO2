@@ -97,8 +97,11 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(Sophus REQUIRED)
+# find_package(Sophus REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
+
+set(Sophus_INCLUDE_DIRS ${CMAKE_HOME_DIRECTORY}/3rdparty/Sophus/installation/include)
+set(Sophus_LIBRARIES ${CMAKE_HOME_DIRECTORY}/3rdparty/Sophus/installation/lib/libSophus.so)
 
 # Define the catkin package
 catkin_package(
