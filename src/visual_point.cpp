@@ -1,4 +1,4 @@
-/* 
+/*
 This file is part of FAST-LIVO2: Fast, Direct LiDAR-Inertial-Visual Odometry.
 
 Developer: Chunran Zheng <zhengcr@connect.hku.hk>
@@ -21,107 +21,108 @@ VisualPoint::VisualPoint(const Vector3d &pos)
 {
 }
 
-VisualPoint::~VisualPoint() 
+VisualPoint::~VisualPoint()
 {
-  for (auto it = obs_.begin(), ite = obs_.end(); it != ite; ++it)
-  {
-    delete(*it);
-  }
-  obs_.clear();
-  ref_patch = nullptr;
+    for (auto it = obs_.begin(), ite = obs_.end(); it != ite; ++it)
+    {
+        delete (*it);
+    }
+    obs_.clear();
+    ref_patch = nullptr;
 }
 
 void VisualPoint::addFrameRef(Feature *ftr)
 {
-  obs_.push_front(ftr);
+    obs_.push_front(ftr);
 }
 
 void VisualPoint::deleteFeatureRef(Feature *ftr)
 {
-  if (ref_patch == ftr)
-  {
-    ref_patch = nullptr;
-    has_ref_patch_ = false;
-  }
-  for (auto it = obs_.begin(), ite = obs_.end(); it != ite; ++it)
-  {
-    if ((*it) == ftr)
+    if (ref_patch == ftr)
     {
-      delete((*it));
-      obs_.erase(it);
-      return;
+        ref_patch = nullptr;
+        has_ref_patch_ = false;
     }
-  }
+    for (auto it = obs_.begin(), ite = obs_.end(); it != ite; ++it)
+    {
+        if ((*it) == ftr)
+        {
+            delete ((*it));
+            obs_.erase(it);
+            return;
+        }
+    }
 }
 
 bool VisualPoint::getCloseViewObs(const Vector3d &framepos, Feature *&ftr, const Vector2d &cur_px) const
 {
-  // TODO: get frame with same point of view AND same pyramid level!
-  if (obs_.size() <= 0) return false;
+    // TODO: get frame with same point of view AND same pyramid level!
+    if (obs_.size() <= 0)
+        return false;
 
-  Vector3d obs_dir(framepos - pos_);
-  obs_dir.normalize();
-  auto min_it = obs_.begin();
-  double min_cos_angle = 0;
-  for (auto it = obs_.begin(), ite = obs_.end(); it != ite; ++it)
-  {
-    Vector3d dir((*it)->T_f_w_.inverse().translation() - pos_);
-    dir.normalize();
-    double cos_angle = obs_dir.dot(dir);
-    if (cos_angle > min_cos_angle)
+    Vector3d obs_dir(framepos - pos_);
+    obs_dir.normalize();
+    auto min_it = obs_.begin();
+    double min_cos_angle = 0;
+    for (auto it = obs_.begin(), ite = obs_.end(); it != ite; ++it)
     {
-      min_cos_angle = cos_angle;
-      min_it = it;
+        Vector3d dir((*it)->T_f_w_.inverse().translation() - pos_);
+        dir.normalize();
+        double cos_angle = obs_dir.dot(dir);
+        if (cos_angle > min_cos_angle)
+        {
+            min_cos_angle = cos_angle;
+            min_it = it;
+        }
     }
-  }
-  ftr = *min_it;
+    ftr = *min_it;
 
-  // Vector2d ftr_px = ftr->px_;
-  // double pixel_dist = (cur_px-ftr_px).norm();
+    // Vector2d ftr_px = ftr->px_;
+    // double pixel_dist = (cur_px-ftr_px).norm();
 
-  // if(pixel_dist > 200)
-  // {
-  //   ROS_ERROR("The pixel dist exceeds 200.");
-  //   return false;
-  // }
+    // if(pixel_dist > 200)
+    // {
+    //   ROS_ERROR("The pixel dist exceeds 200.");
+    //   return false;
+    // }
 
-  if (min_cos_angle < 0.5) // assume that observations larger than 60° are useless 0.5
-  {
-    // ROS_ERROR("The obseved angle is larger than 60°.");
-    return false;
-  }
+    if (min_cos_angle < 0.5) // assume that observations larger than 60° are useless 0.5
+    {
+        // ROS_ERROR("The obseved angle is larger than 60°.");
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 void VisualPoint::findMinScoreFeature(const Vector3d &framepos, Feature *&ftr) const
 {
-  auto min_it = obs_.begin();
-  float min_score = std::numeric_limits<float>::max();
+    auto min_it = obs_.begin();
+    float min_score = std::numeric_limits<float>::max();
 
-  for (auto it = obs_.begin(), ite = obs_.end(); it != ite; ++it)
-  {
-    if ((*it)->score_ < min_score)
+    for (auto it = obs_.begin(), ite = obs_.end(); it != ite; ++it)
     {
-      min_score = (*it)->score_;
-      min_it = it;
+        if ((*it)->score_ < min_score)
+        {
+            min_score = (*it)->score_;
+            min_it = it;
+        }
     }
-  }
-  ftr = *min_it;
+    ftr = *min_it;
 }
 
 void VisualPoint::deleteNonRefPatchFeatures()
 {
-  for (auto it = obs_.begin(); it != obs_.end();)
-  {
-    if (*it != ref_patch)
+    for (auto it = obs_.begin(); it != obs_.end();)
     {
-      delete *it;
-      it = obs_.erase(it);
+        if (*it != ref_patch)
+        {
+            delete *it;
+            it = obs_.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
     }
-    else
-    {
-      ++it;
-    }
-  }
 }
