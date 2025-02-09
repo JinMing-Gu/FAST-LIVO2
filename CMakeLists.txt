@@ -94,6 +94,8 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
 )
 
+set(OpenCV_DIR ${CMAKE_HOME_DIRECTORY}/3rdparty/opencv-3.4.2/installation/share/OpenCV)
+
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
 find_package(OpenCV REQUIRED)
